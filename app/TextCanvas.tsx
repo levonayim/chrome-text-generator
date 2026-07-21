@@ -5,7 +5,7 @@ import { Text3D, Center, Environment, OrbitControls } from "@react-three/drei";
 
 interface TextCanvasProps {
   text: string;
-  transparentBg?: boolean; // 1. Added optional prop (defaults to false)
+  transparentBg?: boolean;
 }
 
 export default function TextCanvas({ text, transparentBg = false }: TextCanvasProps) {
@@ -14,19 +14,18 @@ export default function TextCanvas({ text, transparentBg = false }: TextCanvasPr
 
   return (
     <div
-      className={`w-full h-[500px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing ${
-        // 2. Conditionally toggle background color/gradient
+      /* Added 'touch-none' here so mobile Safari/Chrome doesn't hijack your finger drags */
+      className={`w-full h-[500px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing touch-none ${
         transparentBg 
           ? "bg-transparent" 
           : "bg-gradient-to-b from-sky-200 to-sky-400 shadow-inner"
       }`}
     >
       <Canvas 
-        // 3. Enable WebGL alpha transparency channel
         gl={{ alpha: true, antialias: true }}
         onCreated={({ gl }) => {
           if (transparentBg) {
-            gl.setClearColor(0x000000, 0); // 0 = 100% transparent
+            gl.setClearColor(0x000000, 0);
           }
         }}
         camera={{ position: [0, 0, 5], fov: 50 }}
@@ -59,19 +58,21 @@ export default function TextCanvas({ text, transparentBg = false }: TextCanvasPr
 
         <Environment preset="studio" />
 
+        {/* Updated OrbitControls mapping */}
         <OrbitControls
           enableRotate={true}
           enableZoom={true}
           enablePan={true}
           panSpeed={1.2}
           rotateSpeed={0.8}
+          zoomSpeed={1.0}
           mouseButtons={{
-            LEFT: 2,   // 1-finger trackpad drag = PAN (moves the word around)
-            RIGHT: 0,  // 2-finger click / Right-click = ROTATE
+            LEFT: 2,   // 1-finger trackpad drag = PAN (Moves word across screen)
+            RIGHT: 0,  // 2-finger trackpad click / Right-click = ROTATE
           }}
           touches={{
-            ONE: 2,    // 1-finger touch on mobile/screen = PAN
-            TWO: 1,    // 2-finger touch = ROTATE & ZOOM
+            ONE: 2,    // 1-finger touch on mobile = PAN (Moves word across screen)
+            TWO: 0,    // 2-finger touch on mobile = ROTATE & PINCH-ZOOM
           }}
           makeDefault
         />
