@@ -2,6 +2,7 @@
 
 import { Canvas } from "@react-three/fiber";
 import { Text3D, Center, Environment, OrbitControls } from "@react-three/drei";
+import * as THREE from "three";
 
 interface TextCanvasProps {
   text: string;
@@ -14,12 +15,12 @@ export default function TextCanvas({ text, transparentBg = false }: TextCanvasPr
 
   return (
     <div
-      /* Added 'touch-none' here so mobile Safari/Chrome doesn't hijack your finger drags */
-      className={`w-full h-[500px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing touch-none ${
+      className={`w-full h-[500px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none ${
         transparentBg 
           ? "bg-transparent" 
           : "bg-gradient-to-b from-sky-200 to-sky-400 shadow-inner"
       }`}
+      style={{ touchAction: "none" }}
     >
       <Canvas 
         gl={{ alpha: true, antialias: true }}
@@ -29,6 +30,7 @@ export default function TextCanvas({ text, transparentBg = false }: TextCanvasPr
           }
         }}
         camera={{ position: [0, 0, 5], fov: 50 }}
+        style={{ touchAction: "none" }}
       >
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 10]} intensity={1} />
@@ -58,21 +60,20 @@ export default function TextCanvas({ text, transparentBg = false }: TextCanvasPr
 
         <Environment preset="studio" />
 
-        {/* Updated OrbitControls mapping */}
         <OrbitControls
           enableRotate={true}
           enableZoom={true}
           enablePan={true}
-          panSpeed={1.2}
+          panSpeed={1.5}
           rotateSpeed={0.8}
           zoomSpeed={1.0}
           mouseButtons={{
-            LEFT: 2,   // 1-finger trackpad drag = PAN (Moves word across screen)
-            RIGHT: 0,  // 2-finger trackpad click / Right-click = ROTATE
+            LEFT: THREE.MOUSE.PAN,      // 1-finger click / trackpad drag = Pan
+            RIGHT: THREE.MOUSE.ROTATE,  // Right-click / 2-finger click = Rotate
           }}
           touches={{
-            ONE: 2,    // 1-finger touch on mobile = PAN (Moves word across screen)
-            TWO: 0,    // 2-finger touch on mobile = ROTATE & PINCH-ZOOM
+            ONE: THREE.TOUCH.PAN,                     // 1-finger mobile touch = Pan / Drag across screen
+            TWO: THREE.TOUCH.DOLLY_ROTATE,            // 2-finger mobile pinch = Zoom & Rotate
           }}
           makeDefault
         />
