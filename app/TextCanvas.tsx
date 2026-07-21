@@ -6,27 +6,42 @@ import * as THREE from "three";
 
 interface TextCanvasProps {
   text: string;
-  transparentBg?: boolean;
+  bgType?: "gradient" | "solid" | "transparent";
+  bgColor?: string;
 }
 
-export default function TextCanvas({ text, transparentBg = false }: TextCanvasProps) {
+export default function TextCanvas({ 
+  text, 
+  bgType = "gradient", 
+  bgColor = "#000000" 
+}: TextCanvasProps) {
   const baseSize = 0.8;
   const dynamicSize = text.length > 5 ? baseSize * (5 / text.length) : baseSize;
 
+  const isTransparent = bgType === "transparent";
+
+  // Determine container background styling
+  let containerBgClass = "";
+  let containerStyle: React.CSSProperties = { touchAction: "none" };
+
+  if (bgType === "gradient") {
+    containerBgClass = "bg-gradient-to-b from-sky-200 to-sky-400 shadow-inner";
+  } else if (bgType === "solid") {
+    containerStyle.backgroundColor = bgColor;
+  } else {
+    containerStyle.backgroundColor = "transparent";
+  }
+
   return (
     <div
-      className={`w-full h-[500px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none ${
-        transparentBg 
-          ? "bg-transparent" 
-          : "bg-gradient-to-b from-sky-200 to-sky-400 shadow-inner"
-      }`}
-      style={{ touchAction: "none" }}
+      className={`w-full h-[500px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none ${containerBgClass}`}
+      style={containerStyle}
     >
       <Canvas 
         gl={{ alpha: true, antialias: true }}
         onCreated={({ gl }) => {
-          if (transparentBg) {
-            gl.setClearColor(0x000000, 0);
+          if (isTransparent) {
+            gl.setClearColor(0x000000, 0); // 0 opacity for WebGL canvas
           }
         }}
         camera={{ position: [0, 0, 5], fov: 50 }}
@@ -68,12 +83,12 @@ export default function TextCanvas({ text, transparentBg = false }: TextCanvasPr
           rotateSpeed={0.8}
           zoomSpeed={1.0}
           mouseButtons={{
-            LEFT: THREE.MOUSE.PAN,      // 1-finger click / trackpad drag = Pan
-            RIGHT: THREE.MOUSE.ROTATE,  // Right-click / 2-finger click = Rotate
+            LEFT: THREE.MOUSE.PAN,
+            RIGHT: THREE.MOUSE.ROTATE,
           }}
           touches={{
-            ONE: THREE.TOUCH.PAN,                     // 1-finger mobile touch = Pan / Drag across screen
-            TWO: THREE.TOUCH.DOLLY_ROTATE,            // 2-finger mobile pinch = Zoom & Rotate
+            ONE: THREE.TOUCH.PAN,
+            TWO: THREE.TOUCH.DOLLY_ROTATE,
           }}
           makeDefault
         />
