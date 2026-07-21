@@ -3,11 +3,19 @@
 import { useSearchParams } from "next/navigation";
 import TextCanvas from "../TextCanvas";
 
+type BgType = "gradient" | "solid" | "transparent";
+
 export default function EmbedPage() {
   const searchParams = useSearchParams();
   
   const text = searchParams.get("text") || "CHROME";
-  const bgType = searchParams.get("bgType") || "gradient"; // "gradient", "solid", "transparent"
+  
+  // Cast the URL query parameter to the expected type with a fallback
+  const rawBgType = searchParams.get("bgType");
+  const bgType: BgType = (rawBgType === "solid" || rawBgType === "transparent" || rawBgType === "gradient") 
+    ? rawBgType 
+    : "gradient";
+
   const bgColor = searchParams.get("bgColor") || "#000000";
 
   return (
