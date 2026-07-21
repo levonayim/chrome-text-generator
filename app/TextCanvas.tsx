@@ -5,18 +5,35 @@ import { Text3D, Center, Environment, OrbitControls } from "@react-three/drei";
 
 interface TextCanvasProps {
   text: string;
+  transparentBg?: boolean; // 1. Added optional prop (defaults to false)
 }
 
-export default function TextCanvas({ text }: TextCanvasProps) {
+export default function TextCanvas({ text, transparentBg = false }: TextCanvasProps) {
   const baseSize = 0.8;
   const dynamicSize = text.length > 5 ? baseSize * (5 / text.length) : baseSize;
 
   return (
-    <div className="w-full h-[500px] bg-gradient-to-b from-sky-200 to-sky-400 rounded-xl overflow-hidden shadow-inner cursor-grab active:cursor-grabbing">
-      <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+    <div
+      className={`w-full h-[500px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing ${
+        // 2. Conditionally toggle background color/gradient
+        transparentBg 
+          ? "bg-transparent" 
+          : "bg-gradient-to-b from-sky-200 to-sky-400 shadow-inner"
+      }`}
+    >
+      <Canvas 
+        // 3. Enable WebGL alpha transparency channel
+        gl={{ alpha: true, antialias: true }}
+        onCreated={({ gl }) => {
+          if (transparentBg) {
+            gl.setClearColor(0x000000, 0); // 0 = 100% transparent
+          }
+        }}
+        camera={{ position: [0, 0, 5], fov: 50 }}
+      >
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 10]} intensity={1} />
-        
+
         <Center>
           <Text3D
             font="/fonts/bold_font.json"
@@ -41,16 +58,22 @@ export default function TextCanvas({ text }: TextCanvasProps) {
         </Center>
 
         <Environment preset="studio" />
-        
-        <OrbitControls 
+
+        <OrbitControls
           enableRotate={true}
           enableZoom={true}
           enablePan={true}
-          touches={{
-            ONE: 0, // One finger does nothing, preventing accidental shifts while scrolling the web page
-            TWO: 1  // Two fingers will smoothly rotate and pinch-zoom the 3D chrome text
+          panSpeed={1.2}
+          rotateSpeed={0.8}
+          mouseButtons={{
+            LEFT: 2,   // 1-finger trackpad drag = PAN (moves the word around)
+            RIGHT: 0,  // 2-finger click / Right-click = ROTATE
           }}
-          makeDefault 
+          touches={{
+            ONE: 2,    // 1-finger touch on mobile/screen = PAN
+            TWO: 1,    // 2-finger touch = ROTATE & ZOOM
+          }}
+          makeDefault
         />
       </Canvas>
     </div>
